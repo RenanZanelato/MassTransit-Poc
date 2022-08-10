@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -6,6 +7,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Playground.Consumer;
 using Playground.Messages;
 
@@ -20,15 +23,27 @@ namespace Playground
             services
                 .AddMassTransit(busConfigure =>
                 {
-                    busConfigure.UsingInMemory((context, serviceBusConfigure) =>
+                    busConfigure.UsingInMemory((context, cfg) =>
                     {
-                        serviceBusConfigure.ConfigureEndpoints(context);
-
                         busConfigure.AddConsumer<IConsumer<SampleItensCreated>>();
-                        serviceBusConfigure.ReceiveEndpoint(new TemporaryEndpointDefinition(), endpointConfig =>
+                        cfg.ReceiveEndpoint(new TemporaryEndpointDefinition(), endpointConfig =>
                         {
                             endpointConfig.ConfigureConsumer<IConsumer<SampleItensCreated>>(context);
                         });
+
+                        cfg.ConfigureJsonDeserializer(settings =>
+                        {
+                            settings.TypeNameHandling = TypeNameHandling.Auto;
+                            settings.Converters.Add(new TypeNameHandlingConverter(TypeNameHandling.Auto));
+                            return settings;
+                        });
+                        cfg.ConfigureJsonSerializer(settings =>
+                        {
+                            settings.TypeNameHandling = TypeNameHandling.Auto;
+                            settings.Converters.Add(new TypeNameHandlingConverter(TypeNameHandling.Auto));
+                            return settings;
+                        });
+                        cfg.ConfigureEndpoints(context);
                     });
                 })
                 .AddMassTransitHostedService();
