@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Playground.Consumer;
 using Playground.Messages;
@@ -34,12 +35,16 @@ namespace Playground
                         cfg.ConfigureJsonDeserializer(settings =>
                         {
                             settings.TypeNameHandling = TypeNameHandling.Auto;
+                            settings.DefaultValueHandling = DefaultValueHandling.Populate;
+                            settings.Converters.Add(new StringEnumConverter());
                             settings.Converters.Add(new TypeNameHandlingConverter(TypeNameHandling.Auto));
                             return settings;
                         });
                         cfg.ConfigureJsonSerializer(settings =>
                         {
                             settings.TypeNameHandling = TypeNameHandling.Auto;
+                            settings.DefaultValueHandling = DefaultValueHandling.Populate;
+                            settings.Converters.Add(new StringEnumConverter());
                             settings.Converters.Add(new TypeNameHandlingConverter(TypeNameHandling.Auto));
                             return settings;
                         });
@@ -68,12 +73,14 @@ namespace Playground
                     {
                         Id = Guid.NewGuid(),
                         Name = "example1",
-                        Example = "example2"
+                        Example = "example2",
+                        Sample = SampleExampleItem.BigSample
                     };
 
                     var @event = new
                     {
                         Id = Guid.NewGuid(),
+                        Sample = SampleExampleItem.LittleSample, 
                         Item = example
                     };
 
